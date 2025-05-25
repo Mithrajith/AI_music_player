@@ -1,0 +1,9 @@
+# List of dependencies for Smart Music Player
+mutagen
+pydub
+numpy
+scikit-learn
+tk
+librosa
+pillow
+pygame
