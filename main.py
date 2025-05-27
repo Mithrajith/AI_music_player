@@ -73,7 +73,7 @@ def process_mood_tags(folder_path, force_reprocess=False):
 def main():
     """Main function to initialize and run the music player."""
     root = tk.Tk()
-    root.title("Mood Music Player - Setup")
+    root.title("Smart Music Player - Setup")
     root.geometry("400x300")
     root.configure(bg="#f0f0f0")
     root.resizable(False, False)
@@ -123,7 +123,7 @@ def main():
 
     tk.Label(
         main_frame,
-        text="Welcome to Mood Music Player",
+        text="Welcome to Smart Music Player",
         font=("Helvetica", 16, "bold"),
         bg="#f0f0f0",
         fg="#333333"

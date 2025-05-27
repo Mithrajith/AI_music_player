@@ -105,29 +105,51 @@ def classify_mood(features, clf, scaler):
     features_scaled = scaler.transform([features])
     mood = clf.predict(features_scaled)[0]
     return mood
-
-def process_folder(folder_path, clf=None, scaler=None, training_data=None):
+def parse_essentia_mood(json_path):
     """
-    Process audio files in a folder and classify their mood.
+    Read Essentia's JSON output and classify the mood.
     """
-    # Train classifier if not provided
-    if clf is None or scaler is None:
-        clf, scaler = train_mood_classifier(training_data.get("X_train"), training_data.get("y_train"))
+    try:
+        with open(json_path, 'r') as f:
+            data = json.load(f)
 
+        mood_valence = data['highlevel']['mood_valence']['value']
+        mood_arousal = data['highlevel']['mood_arousal']['value']
+
+        # Map to mood categories
+        if mood_valence == "positive" and mood_arousal == "high":
+            return "happy"
+        elif mood_valence == "negative" and mood_arousal == "high":
+            return "angry"
+        elif mood_valence == "positive" and mood_arousal == "low":
+            return "relaxed"
+        elif mood_valence == "negative" and mood_arousal == "low":
+            return "sad"
+        else:
+            return "unknown"
+    except Exception as e:
+        print(f"[ERROR] Parsing failed: {e}")
+        return "unknown"
+
+def process_folder_with_essentia(folder_path, extractor_path='streaming_extractor_music'):
+    """
+    Process audio files using Essentia's pre-trained model for mood detection.
+    """
     mood_tags = {}
     for filename in os.listdir(folder_path):
         if filename.endswith(".mp3"):
             full_path = os.path.join(folder_path, filename)
-            try:
-                # Extract features
-                features, bpm, key = extract_audio_features(full_path)
-                if features is None:
-                    continue
+            json_output = full_path.replace('.mp3', '_features.json')
 
-                # Classify mood
-                mood = classify_mood(features, clf, scaler)
+            try:
+                # Run Essentia's extractor
+                run([extractor_path, full_path, json_output], check=True)
+
+                # Get mood from JSON output
+                mood = parse_essentia_mood(json_output)
                 mood_tags[filename] = mood
-                print(f"[TAGGED] {filename} as {mood} (BPM={bpm:.2f}, Key={key})")
+
+                print(f"[TAGGED] {filename} as {mood}")
 
             except Exception as e:
                 print(f"[ERROR] Failed to process {filename}: {e}")
